@@ -1,63 +1,118 @@
-const MODEL_OPTIONS = {
-    expectedOutputs: [
-        {
-            type: "text",
-            languages: ["en"]
-        }
-    ]
-};
+import { AI_CONFIG } from "./ai-config.js";
 
 export class AIService {
-    #session = null;
     #systemPrompt = null;
+    #abortController = null;
 
     async initialize() {
-        if (this.#session) {
-            return;
-        }
-
-        if (!("LanguageModel" in self)) {
-            throw new Error("Chrome Built-in AI אינו זמין בדפדפן הזה.");
-        }
-
-        const availability = await LanguageModel.availability(MODEL_OPTIONS);
-        console.log("LanguageModel availability:", availability);
-
-        if (availability === "unavailable") {
-            throw new Error("מודל ה-AI אינו זמין במחשב הזה.");
-        }
-
-        const systemPrompt = await this.#loadSystemPrompt();
-
-        this.#session = await LanguageModel.create({
-            ...MODEL_OPTIONS,
-            initialPrompts: [
-                {
-                    role: "system",
-                    content: systemPrompt
-                }
-            ],
-            monitor(monitor) {
-                monitor.addEventListener("downloadprogress", (event) => {
-                    const percent = Math.round(event.loaded * 100);
-                    console.log(`AI model download: ${percent}%`);
-                });
-            }
-        });
+        await this.#loadSystemPrompt();
     }
 
     async *promptStreaming(prompt) {
         await this.initialize();
+        this.destroy();
+        this.#abortController = new AbortController();
+
+        const endpoint = `${AI_CONFIG.baseUrl}${AI_CONFIG.chatCompletionsPath}`;
+
+        let response;
 
         try {
-            const stream = this.#session.promptStreaming(prompt);
-
-            for await (const chunk of stream) {
-                yield chunk;
-            }
+            response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    messages: [
+                        {
+                            role: "system",
+                            content: this.#systemPrompt
+                        },
+                        {
+                            role: "user",
+                            content: prompt
+                        }
+                    ],
+                    stream: true,
+                    reasoning_effort: AI_CONFIG.reasoningEffort,
+                    max_tokens: AI_CONFIG.maxTokens,
+                    temperature: AI_CONFIG.temperature
+                }),
+                signal: this.#abortController.signal
+            });
         } catch (error) {
             this.destroy();
-            throw error;
+
+            if (error?.name === "AbortError") {
+                throw error;
+            }
+
+            throw new Error(
+                "לא ניתן להתחבר לשרת ה-AI המקומי. ודא שהשרת פועל על 127.0.0.1:8080."
+            );
+        }
+
+        if (!response.ok) {
+            const details = await response.text().catch(() => "");
+            this.destroy();
+            throw new Error(
+                `שרת ה-AI החזיר שגיאה ${response.status}${details ? `: ${details}` : ""}`
+            );
+        }
+
+        if (!response.body) {
+            this.destroy();
+            throw new Error("שרת ה-AI לא החזיר stream תקין.");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        try {
+            while (true) {
+                const { value, done } = await reader.read();
+                buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+
+                const lines = buffer.split(/\r?\n/);
+                buffer = lines.pop() ?? "";
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+
+                    if (!trimmed.startsWith("data:")) {
+                        continue;
+                    }
+
+                    const data = trimmed.slice(5).trim();
+
+                    if (!data || data === "[DONE]") {
+                        continue;
+                    }
+
+                    let event;
+
+                    try {
+                        event = JSON.parse(data);
+                    } catch (_) {
+                        continue;
+                    }
+
+                    const content = event?.choices?.[0]?.delta?.content;
+
+                    if (typeof content === "string" && content.length > 0) {
+                        yield content;
+                    }
+                }
+
+                if (done) {
+                    break;
+                }
+            }
+        } finally {
+            reader.releaseLock();
+            this.#abortController = null;
         }
     }
 
@@ -78,12 +133,9 @@ export class AIService {
     }
 
     destroy() {
-        try {
-            this.#session?.destroy();
-        } catch (_) {
-            // אין צורך בפעולה נוספת בזמן ניקוי session.
+        if (this.#abortController) {
+            this.#abortController.abort();
+            this.#abortController = null;
         }
-
-        this.#session = null;
     }
 }
