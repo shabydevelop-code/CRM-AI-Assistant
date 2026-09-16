@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CRM AI Assistant</title>
+
+    <link rel="stylesheet" href="sidepanel.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <header>
+        <div>
+            <h1>CRM AI</h1>
+            <span>העוזר החכם שלך</span>
+        </div>
+
+        <div class="status">
+            AI
+        </div>
+    </header>
+
+    <main id="chat">
+
+        <div class="message ai">
+            שלום, איך אפשר לעזור?
+        </div>
+
+    </main>
+
+    <div class="input-area">
+
+        <textarea
+            id="prompt"
+            placeholder="אפשר לשאול אותי על הלקוח..."
+            rows="1"
+        ></textarea>
+
+        <button id="send">
+            שלח
+        </button>
+
+    </div>
+
+</div>
+
+<script type="module" src="sidepanel.js"></script>
+
+</body>
+</html>
