@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "CRM AI Assistant",
+  "version": "1.0.0",
+  "description": "עוזר AI חכם למערכות CRM",
+
+  "permissions": [
+    "sidePanel",
+    "activeTab",
+    "scripting"
+  ],
+
+  "action": {
+    "default_title": "פתח CRM AI Assistant"
+  },
+
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+
+  "background": {
+    "service_worker": "background.js"
+  }
+}
