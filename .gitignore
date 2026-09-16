@@ -1,0 +1,12 @@
+# Local LLM models
+server/models/
+*.gguf
+
+# Local llama.cpp runtime
+server/llama.cpp/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
