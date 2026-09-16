@@ -1,0 +1,6 @@
+{
+  "model": "models/Qwen3-4B-Q4_K_M.gguf",
+  "host": "127.0.0.1",
+  "port": 8080,
+  "contextSize": 4096
+}
