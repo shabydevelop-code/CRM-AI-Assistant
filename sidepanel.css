@@ -57,7 +57,7 @@ main {
 
 .message {
     max-width: 85%;
-    padding: 11px 14px 7px;
+    padding: 7px 14px 11px;
     line-height: 1.5;
     border-radius: 14px;
 }
@@ -68,7 +68,7 @@ main {
 }
 
 .message-time {
-    margin-top: 5px;
+    margin-bottom: 5px;
     font-size: 10px;
     line-height: 1.2;
     direction: ltr;
