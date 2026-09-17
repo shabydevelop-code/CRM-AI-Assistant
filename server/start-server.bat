@@ -23,7 +23,7 @@ if not exist "%LLAMA_SERVER%" (
     exit /b 1
 )
 
-for /f "usebackq tokens=*" %%A in (`powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $c = Get-Content -Raw '%CONFIG%' | ConvertFrom-Json; [Console]::WriteLine($c.model); [Console]::WriteLine($c.host); [Console]::WriteLine($c.port); [Console]::WriteLine($c.contextSize); [Console]::WriteLine($c.threads)"`) do (
+for /f "usebackq tokens=*" %%A in (`powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $c = Get-Content -Raw '%CONFIG%' | ConvertFrom-Json; [Console]::WriteLine($c.model); [Console]::WriteLine($c.host); [Console]::WriteLine($c.port); [Console]::WriteLine($c.contextSize); [Console]::WriteLine($c.threads); [Console]::WriteLine($c.slots)"`) do (
     if not defined MODEL_REL (
         set "MODEL_REL=%%A"
     ) else if not defined HOST (
@@ -34,6 +34,8 @@ for /f "usebackq tokens=*" %%A in (`powershell -NoProfile -Command "$ErrorAction
         set "CONTEXT_SIZE=%%A"
     ) else if not defined THREADS (
         set "THREADS=%%A"
+    ) else if not defined SLOTS (
+        set "SLOTS=%%A"
     )
 )
 
@@ -42,6 +44,7 @@ if not defined HOST goto :config_error
 if not defined PORT goto :config_error
 if not defined CONTEXT_SIZE goto :config_error
 if not defined THREADS goto :config_error
+if not defined SLOTS goto :config_error
 
 set "MODEL_REL=%MODEL_REL:/=\%"
 set "MODEL=%~dp0%MODEL_REL%"
@@ -61,10 +64,11 @@ echo Model: %MODEL%
 echo URL: http://%HOST%:%PORT%
 echo Context size: %CONTEXT_SIZE%
 echo Threads: %THREADS%
+echo Slots: %SLOTS%
 echo Allowed origin: %EXTENSION_ORIGIN%
 echo.
 
-"%LLAMA_SERVER%" -m "%MODEL%" --host "%HOST%" --port "%PORT%" -c "%CONTEXT_SIZE%" --threads "%THREADS%" --cors-origins "%EXTENSION_ORIGIN%"
+"%LLAMA_SERVER%" -m "%MODEL%" --host "%HOST%" --port "%PORT%" -c "%CONTEXT_SIZE%" --threads "%THREADS%" --parallel "%SLOTS%" --cors-origins "%EXTENSION_ORIGIN%"
 
 if errorlevel 1 (
     echo.
@@ -78,6 +82,6 @@ exit /b %errorlevel%
 echo [ERROR] Invalid configuration in:
 echo %CONFIG%
 echo.
-echo Required properties: model, host, port, contextSize, threads
+echo Required properties: model, host, port, contextSize, threads, slots
 pause
 exit /b 1
