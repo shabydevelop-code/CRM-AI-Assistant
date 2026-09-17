@@ -4,5 +4,5 @@
   "port": 8080,
   "contextSize": 4096,
   "threads": 8,
-  "slots": 1
+  "slots": 4
 }
