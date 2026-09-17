@@ -3,5 +3,5 @@
   "host": "127.0.0.1",
   "port": 8080,
   "contextSize": 4096,
-  "threads": 4
+  "threads": 6
 }
