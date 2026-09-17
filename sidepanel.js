@@ -20,11 +20,6 @@ function addMessage(text, type, timestamp = null) {
     message.classList.add("message", type);
     message.dir = "rtl";
 
-    const content = document.createElement("div");
-    content.classList.add("message-content");
-    content.textContent = text;
-    message.appendChild(content);
-
     const time = document.createElement("div");
     time.classList.add("message-time");
     message.appendChild(time);
@@ -32,6 +27,11 @@ function addMessage(text, type, timestamp = null) {
     if (timestamp) {
         time.textContent = formatTimestamp(timestamp);
     }
+
+    const content = document.createElement("div");
+    content.classList.add("message-content");
+    content.textContent = text;
+    message.appendChild(content);
 
     chat.appendChild(message);
     chat.scrollTop = chat.scrollHeight;
