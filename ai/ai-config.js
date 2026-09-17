@@ -3,5 +3,5 @@ export const AI_CONFIG = Object.freeze({
     chatCompletionsPath: "/v1/chat/completions",
     reasoningEffort: "none",
     maxTokens: 512,
-    temperature: 0.2
+    temperature: 0
 });
