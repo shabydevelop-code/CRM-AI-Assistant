@@ -72,7 +72,7 @@ main {
     font-size: 10px;
     line-height: 1.2;
     direction: ltr;
-    text-align: left;
+    text-align: right;
     opacity: 0.65;
     min-height: 12px;
 }
